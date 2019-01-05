@@ -105,10 +105,11 @@ class SmartphoneTestingFarmClient(SmartphoneTestingFarmAPI):
         for device in devices_to_add:
             try:
                 log.info("Trying to connect %s from group %s..." % (device, device_group.get("group_name")))
-                self._add_device_to_group(device, device_group)
-                self._connect_device_to_group(device, device_group)
-                self._add_device_to_file(device)
-                log.info("%s was connected and ready for use" % device)
+                if self.is_device_available(device.serial):
+                    self._add_device_to_group(device, device_group)
+                    self._connect_device_to_group(device, device_group)
+                    self._add_device_to_file(device)
+                    log.info("%s was connected and ready for use" % device)
             except Exception:
                 log.exception("Error connecting for %s" % device)
                 self._delete_device_from_group(device, device_group)
@@ -232,7 +233,7 @@ class SmartphoneTestingFarmClient(SmartphoneTestingFarmAPI):
             return []
 
     def _get_device_state(self, serial):
-        time.sleep(0.1)  # don't ddos api =)
+        time.sleep(0.05)  # don't ddos api =)
         try:
             response = self.get_device(serial=serial)
             return response.json().get("device", {})
